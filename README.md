@@ -16,6 +16,7 @@
   7. Do all this either worldwide or country-wise.
   Important: Whatever number you bring and use as an input, needs to have a reference. If you are using
   external research, make an academic reference as well.
+
   The following files must be submitted to GitHub:
   • Markdown/ notebook file
   • PDF output
