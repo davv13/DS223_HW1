@@ -1,3 +1,1 @@
-# DS223 Marketing Analytics 
-## Homework on Bass Model
-## Davit Davtyan
+# DS223 Marketing Analytics - Homework on Bass Model - Davit Davtyan
