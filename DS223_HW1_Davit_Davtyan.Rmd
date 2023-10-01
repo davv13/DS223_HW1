@@ -1,0 +1,177 @@
+---
+title: "DS223 Marketing Analytics"
+author: "Davit Davtyan"
+date: "01-10-2023"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+subtitle: Homework 1
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## **Part 1**
+From the collection of best inventions on times website, I chose the innovation called [Enhanced Robotics Sportsmate 5](https://time.com/collection/best-inventions-2022/6228142/enhanced-robotics-sportsmate-5/).
+
+## **Part 2**
+ Until now, you’d be hard-pressed to find an exoskeleton outside hospitals or rehab facilities [1]. But after trying to create a more affordable device for our patients, **Enhanced Robotics** unveiled a new way to level up workouts [1]. The **Sportsmate 5**, which is worn around the waist and braces the thighs, provides assistance or resistance during activity with the touch of a button [1]. “People move by producing torque, or force, at our joints,” CEO Hanqi Leon Zhu says [1]. “Our algorithms can detect your gait and produce the torque needed to more easily achieve that motion,” reducing pressure and energy spent [1]. On the flip side, athletes can use the exoskeleton, available in January 2023, to generate more force to train against, maximizing gains in the gym [1]. 
+
+I chose a look-alike innovation called [ReWalk](https://rewalk.com/) that was originated back in 2011. It is a commercial bionic walking assistance system that uses powered leg attachments to enable paraplegics to stand upright, walk and climb stairs [2]. The system is powered by a backpack battery, and is controlled by a simple wrist-mounted remote which detects and enhances the user's movements [2].
+
+The choice of **ReWalk** as the look-alike innovation for **Enhanced Robotics Sportsmate 5** is justified by several key factors:
+ 1) Both **ReWalk** and **Enhanced Robotics Sportsmate 5** fall within the broader category of wearable robotics. They are designed to be worn on the body and use advanced technology to enhance human mobility and physical capabilities. This commonality is fundamental to their comparison.
+ 2) Although **ReWalk** and **Enhanced Robotics Sportsmate 5** have kind of distinct target audiences, they address individuals seeking mobility assistance or enhancement. **ReWalk** primarily targets individuals with mobility impairments, such as paraplegics, who aim to regain the ability to walk. On the other hand, **Enhanced Robotics Sportsmate 5** targets individuals looking to improve their physical fitness and exercise routines. Despite the different use cases, both innovations aim to empower users in their respective physical activities.
+ 3) While **ReWalk** primarily focuses on rehabilitation and daily mobility for individuals with mobility impairments, **Enhanced Robotics Sportsmate 5** can also have applications in rehabilitation settings. It can assist individuals in specific exercises for rehabilitation or physical therapy, making it relevant in contexts similar to **ReWalk's**.
+
+
+## **Part 3**
+
+The revenue data used for this analysis was obtained from the **Statista** website [3], a reputable source for various statistics and data. To gain insights into the diffusion of **ReWalk** technology, I modified the revenue data by dividing each year's revenue by the average price of **ReWalk's** product. This adjustment effectively transforms the revenue data into an estimate of the number of units sold each year. The modified data, which now represents estimated unit sales, can now provide valuable insights into the diffusion of **ReWalk** technology. 
+
+
+The **Rewalk exoskeleton** is priced at a whopping $71,600 for a personal device and $85,500 for an institutional device, with an undisclosed amount in annual service fees [4]. By dividing each year's revenue by the average price of the product ($77,000), we obtain the estimated number of units sold by **ReWalk Robotics** for each year. This calculation assumes that the revenue is solely generated from the sale of the product at the average price and does not consider other sources of revenue, such as service contracts, accessories, or partnerships.
+
+**Importing necessary libraries**
+
+```{r}
+library(readxl)
+library(ggplot2)
+library(ggpubr)
+library(diffusion)
+```
+
+**Reading the already modified data, and adding "Cumulative Unit Sales" column**
+
+```{r}
+ReWalk <- read_excel("ReWalk_Statistics.xlsx", sheet = "Usable Data")
+ReWalk$`Cumulative Unit Sales` <- cumsum(ReWalk$`Unit Sales`)
+print(ReWalk)
+```
+
+
+**Plotting the bar chart for Unit Sales**
+
+```{r, fig.width=6, fig.height=4}
+barplot(ReWalk$`Unit Sales`, names.arg = ReWalk$Year, 
+        col = 'skyblue', xlab = 'Year', ylab = 'Unit Sales',
+        main = 'Unit Sales Over the Years', border = 'black', ylim = c(0, max(ReWalk$`Unit Sales`)))
+```
+
+**Plotting the bar chart for cumulative unit sales**
+```{r}
+barplot(ReWalk$`Cumulative Unit Sales`, 
+        names.arg = ReWalk$Year, col = 'skyblue',
+        xlab = 'Year', ylab = 'Cumulative Unit Sales', 
+        main = 'Cumulative Unit Sales Over the Years', border = 'black')
+```
+
+
+
+
+#### **Analyzing the bar plots of **ReWalk Robotics'** annual sales statistics for Unit Sales and Cumulative Unit Sales:**
+
+ **Unit Sales:**
+The highest unit sales were observed in 2017, reaching 100 units, indicating a significant demand for ReWalk products during that year. This peak might be attributed to increased awareness, improvements in the technology, or other market dynamics. After the peak in 2017, the number of unit sales gradually decreased in subsequent years. It maybe influenced by factors beyond just the technology itself, such as healthcare policies, patient demographics, and competition from similar products. However, it's worth noting that the sales remained relatively stable in the range of 49 to 77 units per year from 2015 to 2022. This stability suggests that ReWalk Robotics has maintained a consistent customer base despite fluctuations. 
+
+ **Cumulative Unit Sales:**
+The cumulative sales steadily increased year by year, which is a positive sign for **ReWalk Robotics**. It demonstrates the company's sustained growth and expanding customer base. Despite annual fluctuations, the company has been steadily expanding its customer base, indicating that there is an ongoing demand for their products.
+
+
+## **Part 4**
+
+#### **Estimate Bass model parameters for the look-alike innovation**
+
+```{r}
+diff_m = diffusion(ReWalk$`Unit Sales`)
+p=round(diff_m$w,4)[1]
+q=round(diff_m$w,4)[2]
+m=round(diff_m$w,4)[3]
+diff_m
+```
+
+## **Part 5**
+
+#### **Make predictions of the diffusion of the innovation Enhanced Robotics Sportsmate 5**
+
+
+```{r}
+bass.f <- function(t,p,q){
+((p+q)^2/p)*exp(-(p+q)*t)/
+(1+(q/p)*exp(-(p+q)*t))^2
+}
+
+bass.F <- function(t,p,q){
+(1-exp(-(p+q)*t))/
+(1+(q/p)*exp(-(p+q)*t))
+}
+```
+
+
+```{r}
+ReWalk$pred_sales <- bass.f(1:9, p = p, q = q) * m
+
+ggplot(data = ReWalk, aes(x = as.factor(Year))) +
+  geom_bar(aes(y = `Unit Sales`), stat = 'identity', fill = 'skyblue') +
+  geom_point(aes(y = pred_sales), color = 'red') +
+  labs(x = 'Year', y = 'Sales', title = 'Unit Sales and Predicted Sales Over the Years') +
+  theme_minimal()
+
+```
+
+## **Part 6** 
+Estimate the number of adopters by period. Thus, you will need to estimate the potential market share. You can use Fermi’s logic here as well.
+
+Consider various factors that can influence the potential market for "Enhanced Robotics Sportsmate 5" in Armenia among different age groups and segments of the population.
+
+ 1. **Disabled Population (Physiological Disability):** Among the 186,000 disabled individuals in Armenia, around 37,000 have physiological disabilities [5]. Assuming that 92% of the disabled population is unemployed [5], it leaves us with approximately 3,000 individuals who may be able to afford the product with government support or assistance from family members. This can be a reasonable assumption because disabled individuals with physiological disabilities may have higher support needs, and the government or family support can play a significant role in making such purchases.
+
+ 2. **Young Adults (Ages 20-34):** This age group represents 23.8% [6] of the total population (3000000), which is around 714000 people, and I think that around 30% of them engage in physical activities regularly, which is 214000 people. Among those, I think approximately 30% might be interested in the product, resulting in 64,000 potential interested individuals. However, I think only 40% of them may be able to afford the product, leading to an estimated 25,000 potential buyers. This makes sense because younger adults are more likely to be physically active and interested in fitness-related products. This can be attributed to various factors, including higher energy levels, greater mobility, and a stronger inclination towards adopting active lifestyles. Also, younger adults are generally more open to incorporating technology into their fitness routines.Also, younger adults may have more income available for purchasing fitness products compared to older individuals who may have financial responsibilities like family expenses.
+
+ 3. **Middle-Aged to Older Adults (Ages 35-69):** For this age group, which constitutes 42% [6] of the total population (3000000), which is around 1272000 people, I guess that 10% engage in physical exercises regularly, which is 127000 people. Among these, I believe around 30% might show interest in the product, resulting in 38,000 potential interested individuals. However, I believe only 20% of them may be able to purchase it, leading to an estimated 7,600 potential buyers. This is a reasonable assumption as older adults may have varying degrees of physical activity, and affordability can be a limiting factor. While some individuals in this age group remain highly active and engaged in regular exercise routines, others may have chronic health conditions or physical limitations that restrict their ability to engage in physical activity. So, also older adults may face financial limitations related to retirement, healthcare expenses, and other financial responsibilities.
+
+ **Total Potential Buyers:** Summing up the potential buyers from these different segments, we arrive an estimated total of 36,000 people who might be interested in and able to purchase **"Enhanced Robotics Sportsmate 5"** in Armenia.
+
+```{r}
+market_potential_Armenia <- 36000
+t = c(1:9)
+
+adopters_Armenia <- ((((p+q)^2/p)*exp(-(p+q)*t))/(1+(q/p)*exp(-(p+q)*t))^2) * market_potential_Armenia
+
+adopters_Armenia
+
+Adopters_ARM <- data.frame(
+  Time_Period = t,
+  New_Adopters = adopters_Armenia
+)
+
+```
+```{r}
+ggplot(data = Adopters_ARM, aes(x = t, y = New_Adopters)) +
+  geom_bar(stat = 'identity', fill = 'skyblue', color = 'black', width = 0.6) +
+  labs(
+    title = "Estimated New Adopters Over Time in Armenia",
+    x = "Time Period",
+    y = "New Adopters"
+  ) +
+  theme_minimal()
+```
+
+
+#### **Reference list**
+ [1] De Guzman, C. (2022, November 10). Personal Mobility Assistant. Time.
+ https://time.com/collection/best-inventions-2022/6228142/enhanced-robotics-sportsmate-5/
+ 
+ [2] Wikipedia contributors. (2023). ReWalk. Wikipedia. https://en.wikipedia.org/wiki/ReWalk 
+ 
+ [3] Statista. (2023, March 15). ReWalk Robotics annual revenue 2014-2022.
+ https://www.statista.com/statistics/1097243/rewalk-robotics-revenue/ 
+ 
+ [4] Limakatso, K., PhD. (2023). Exoskeletons: costs and where to buy one. HealthNews.       https://healthnews.com/family-health/rehabilitation/exoskeletons-costs-and-where-to-buy-one/ 
+ 
+ [5] Disability in Armenia – globaldisabilityrightsnow. (n.d.). https://miusa.globaldisabilityrightsnow.org/infographic/disability-armenia/#:~:text=6.2%25%20of%20the%20population%20is%20disabled%20(186%2C384%20people). 
+ 
+ [6] Armenia | Demographic changes. (n.d.). https://www.population-trends-asiapacific.org/data/ARM 
